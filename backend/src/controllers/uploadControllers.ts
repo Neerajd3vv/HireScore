@@ -7,8 +7,8 @@ import { resumeSchema } from "../validations/resumeSchema"
 import { redis } from "../lib/redisClient"
 import { randomUUID } from "crypto"
 
-
 const prisma = new PrismaClient()
+
 
 export async function resumeUpload(req: Request, res: Response) {
     try {
@@ -54,6 +54,9 @@ export async function jdWithFileName(req: Request, res: Response) {
             return res.status(401).json({ success: false, error: "Unauthorized" });
         }
 
+        console.log("reqqqq", req.user);
+
+
         const parsed = validationParser(resumeSchema, req.body)
         if (!parsed.success || !parsed.data) {
             return res.status(400).json({ success: false, error: "ValidationFailed", details: parsed.errors })
@@ -61,9 +64,11 @@ export async function jdWithFileName(req: Request, res: Response) {
 
 
         const userId = req.user.id
+        console.log("userId", userId);
+
 
         // used transaction here
-        await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx) => {
             const jd = await tx.jd.create({
                 data: {
                     description: parsed.data.jd,
@@ -77,14 +82,15 @@ export async function jdWithFileName(req: Request, res: Response) {
                 }
             })
 
-            return { jd, resume }
+            return { jdId: jd.id, resumeId: resume.id }
         })
 
         return res.status(201).json({
             success: true,
             message: "JD and Resume saved successfully",
+            jdId: result.jdId,
+            resumeId: result.resumeId
         });
-
 
 
 

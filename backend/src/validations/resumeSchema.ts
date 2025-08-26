@@ -12,5 +12,6 @@ export const resumeSchema = z.object({
     fileName: z
         .string()
         .min(3, "Filename must be at least 3 characters long")
-        .max(100, "Filename is too long")
+        .max(100, "Filename is too long"),
+
 });

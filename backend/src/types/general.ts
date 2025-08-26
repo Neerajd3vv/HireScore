@@ -1,7 +1,9 @@
 export type userPayload = {
     id: string;
     email: string;
-    firstname: string;
+    firstname?: string;
     lastname?: string;
     imgUrl?: string;
 }
+
+

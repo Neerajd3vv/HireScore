@@ -5,6 +5,6 @@ export const useAnalysis = z.object({
         message: "jdId must be a valid UUID",
     }),
     resumeId: z.uuid({
-        message: "resumeId must be a valid UUID",
+        message: "resumeId is not valid",
     }),
 });

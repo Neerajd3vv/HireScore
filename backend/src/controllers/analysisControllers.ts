@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
+
 import { redis } from "../lib/redisClient"
 import { Request, Response } from "express"
 import { runAnalysis } from "../services/runAnalysis";
@@ -9,7 +9,7 @@ import { useAnalysis } from "../validations/userAnalysis";
 import { analysisQueue } from "../queues/analysisQueue";
 
 
-
+const prisma = new PrismaClient()
 export async function guestAnalysis(req: Request, res: Response) {
 
     try {
@@ -19,10 +19,8 @@ export async function guestAnalysis(req: Request, res: Response) {
             return res.status(400).json({ success: false, error: "Missing guestSessionId" });
         }
 
-        console.log("guestSesssionId", guestSessionId);
 
         const data = await redis.hGetAll(`guest:${guestSessionId}`);
-        console.log("backend-redis-data-guest", data);
 
         if (!data || !data.jd || !data.fileName) {
             return res.status(404).json({ success: false, error: "Session expired or invalid" });

@@ -7,6 +7,7 @@ const prisma = new PrismaClient()
 export const analysisWorker = new Worker("resume-analysis", async job => {
     if (job.name === "run-analysis") {
         const { id } = job.data
+        console.log(`🔄 Processing job: ${job.id}, name: ${job.name}, data:`, job.data);
 
         try {
             const analysisRecord = await prisma.analysis.findUnique({ where: { id }, include: { jd: true, resume: true } })
@@ -18,6 +19,7 @@ export const analysisWorker = new Worker("resume-analysis", async job => {
                     status: "processing"
                 },
             })
+
 
             const analysisResult = await runAnalysis(analysisRecord.jd.description, analysisRecord.resume.fileName)
 
@@ -64,3 +66,7 @@ export const analysisWorker = new Worker("resume-analysis", async job => {
     }
 
 )
+
+analysisWorker.on("completed", (job) => {
+    console.log(`🎉 [Worker] Job ${job.id} has been marked completed in BullMQ queue.`);
+});
