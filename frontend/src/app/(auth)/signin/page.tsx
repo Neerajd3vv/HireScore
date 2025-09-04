@@ -29,7 +29,7 @@ export default function SignInForm() {
 
     const handleGoogleSignIn = () => {
         setGoogleLoading(true);
-        signIn("google", { callbackUrl: "/test-page" });
+        signIn("google", { callbackUrl: "/main" });
     };
 
 

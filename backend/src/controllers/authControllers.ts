@@ -79,6 +79,8 @@ export const signin = async (req: Request, res: Response) => {
             })
         }
 
+
+
         if (user.password) {
 
             const comparePass = await bcrypt.compare(parsed.data.password, user.password)
@@ -136,7 +138,6 @@ export const googleSignin = async (req: Request, res: Response) => {
 
 
         if (existingUser) {
-            console.log("existingUserrr", existingUser);
 
             const accessToken = jwt.sign(
                 { id: existingUser.id, email: existingUser.email },
@@ -168,7 +169,8 @@ export const googleSignin = async (req: Request, res: Response) => {
             success: true,
             message: "User created successfuly",
             id: newUser.id,
-            accessToken
+            accessToken,
+
         });
 
 

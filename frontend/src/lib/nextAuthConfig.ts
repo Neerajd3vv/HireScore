@@ -14,15 +14,12 @@ export const nextAuthConfig: NextAuthOptions = {
             },
             async authorize(credentials) {
                 try {
-                    console.log("credentials", credentials);
 
                     const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/auth/signin`, {
                         email: credentials?.email,
                         password: credentials?.password
                     })
-                    console.log("response", response);
 
-                    console.log("user-data", response.data.user);
 
                     if (response.data?.success) {
                         return {
@@ -31,7 +28,9 @@ export const nextAuthConfig: NextAuthOptions = {
                             lastname: response.data.user.lastname,
                             email: response.data.user.email,
                             imgUrl: response.data.user.imgUrl,
-                            accessToken: response.data.accessToken
+                            accessToken: response.data.accessToken,
+                            provider: "credentials"
+
                         }
                     }
 
@@ -69,17 +68,28 @@ export const nextAuthConfig: NextAuthOptions = {
         signIn: "/signin"
     },
 
+
     callbacks: {
 
         async signIn({ user, account }) {
+
+
             if (account?.provider === "google") {
                 try {
-                    await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/auth/googleSignin`, {
+
+                    const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/auth/googleSignin`, {
                         firstname: user.name?.split(" ")[0] || "",
                         lastname: user.name?.split(" ")[1] || "",
                         email: user.email,
                         imgUrl: user.image,
                     })
+                    user.id = response.data.id
+                    user.firstname = user.name?.split(" ")[0] || ""
+                    user.lastname = user.name?.split(" ")[1] || ""
+                    user.imgUrl = user.image
+                    user.accessToken = response.data.accessToken
+                    user.provider = "google"
+
 
                 } catch (error) {
                     if (axios.isAxiosError(error)) {
@@ -93,34 +103,32 @@ export const nextAuthConfig: NextAuthOptions = {
             return true;
         },
 
-        async jwt({ user, token, account }) {
 
-
+        async jwt({ user, token }) {
             if (user) {
                 token.id = user.id;
                 token.email = user.email;
                 token.firstname = user.firstname;
-                token.lastname = user.firstname;
+                token.lastname = user.lastname;
                 token.imgUrl = user.imgUrl;
+                token.accessToken = user?.accessToken;
+                token.provider = user?.provider
 
-                if (user.accessToken) {
-                    token.accessToken = user?.accessToken
-                }
-                if (account?.provider === "google") {
-                    token.accessToken = account.access_token
-                }
             }
-
             return token
+
         },
         async session({ token, session }) {
             if (session && session.user) {
-                session.user.id = token.id as string | undefined | null;
-                session.user.firstname = token.firstname as string | undefined | null;
-                session.user.lastname = token.lastname as string | undefined | null;
-                session.user.email = token.email as string | undefined | null;
-                session.user.imgUrl = token.imgUrl as string | undefined | null;
-                session.user.accessToken = token.accessToken as string | undefined | null;
+                session.user = {
+                    id: token.id as string | undefined | null,
+                    firstname: token.firstname as string | undefined | null,
+                    lastname: token.lastname as string | undefined | null,
+                    email: token.email as string | undefined | null,
+                    imgUrl: token.imgUrl as string | undefined | null,
+                    accessToken: token.accessToken as string | undefined | null,
+                    provider: token.provider as string | undefined | null,
+                };
             }
             return session
         }
@@ -138,6 +146,7 @@ declare module "next-auth" {
             email: string | undefined | null;
             imgUrl: string | undefined | null;
             accessToken: string | undefined | null;
+            provider: string | undefined | null;
         };
     }
     interface User {
@@ -146,6 +155,7 @@ declare module "next-auth" {
         lastname: string | undefined | null;
         imgUrl: string | undefined | null;
         accessToken: string | undefined | null;
+        provider: string | undefined | null;
     }
 }
 

@@ -30,6 +30,9 @@ function Main() {
 
     const [savedfileName, setSavedFileName] = useState<string | null>(null)
 
+    const [resumeId, setResumeId] = useState<string | null>(null)
+    const [jdId, setJdId] = useState<string | null>(null)
+
     // const [isDarkMode, setIsDarkMode] = useState(true)
     const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -135,12 +138,17 @@ function Main() {
                             headers: {
                                 "Content-Type": "application/json",
                                 Authorization: `Bearer ${session.user.accessToken}`,
+                                "x-provider": session.user.provider
                             },
                         }
                     );
                     if (res2.data.success) {
                         setIsUploaded(true);
                         setSavedFileName(fileName)
+                        console.log("res2.dataaaafdsfsdfs", res2.data);
+
+                        setJdId(res2.data.jdId)
+                        setResumeId(res2.data.resumeId)
 
                     }
                 } else {
@@ -175,16 +183,16 @@ function Main() {
         try {
             setIsAnalysing(true)
             if (session) {
-                const payload = { jd: jobDescription, savedfileName };
+                const payload = { jdId, resumeId };
                 const res2 = await axios.post(
-                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/analysis/jd-resume`,
+                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/analysis`,
                     payload,
                     {
                         headers: {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${session.user.accessToken}`,
                         },
-                    }
+                    },
                 );
                 if (res2.data.success) {
                     console.log(" analysis result:", res2.data.analysis);
@@ -224,7 +232,7 @@ function Main() {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-bl from-[#000000]  via-[#000814] to-[#000000] relative overflow-hidden">
+        <div className="min-h-screen pt-20 bg-gradient-to-bl from-[#000000]  via-[#000814] to-[#000000] relative overflow-hidden">
 
             <div className="relative  z-10 container mx-auto px-4 py-8">
                 <div className="max-w-3xl mx-auto space-y-8">
