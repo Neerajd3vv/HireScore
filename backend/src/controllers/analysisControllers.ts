@@ -1,12 +1,9 @@
 import { PrismaClient } from "@prisma/client"
 
-import { redis } from "../lib/redisClient"
 import { Request, Response } from "express"
-import { runAnalysis } from "../services/runAnalysis";
-import { resumeSchema } from "../validations/resumeSchema";
 import { validationParser } from "../utils/validationParser";
 import { useAnalysis } from "../validations/userAnalysis";
-import { analysisQueue } from "../queues/analysisQueue";
+import { analysisQueue, analysisQueueGuest } from "../queues/analysisQueue";
 
 
 const prisma = new PrismaClient()
@@ -19,36 +16,13 @@ export async function guestAnalysis(req: Request, res: Response) {
             return res.status(400).json({ success: false, error: "Missing guestSessionId" });
         }
 
+        analysisQueueGuest(guestSessionId)
 
-        const data = await redis.hGetAll(`guest:${guestSessionId}`);
-
-        if (!data || !data.jd || !data.fileName) {
-            return res.status(404).json({ success: false, error: "Session expired or invalid" });
-        }
-
-
-        const analysis = await runAnalysis(data.jd, data.fileName)
-
-        if (analysis.error) {
-            if (
-                analysis.error.includes("Resume too short") ||
-                analysis.error.includes("Invalid file")
-            ) {
-                return res.status(400).json({ success: false, error: analysis.error });
-            }
-
-            if (analysis.error.includes("produce result")) {
-                return res.status(422).json({ success: false, error: analysis.error });
-            }
-
-            return res.status(500).json({
-                success: false,
-                error: analysis.error || "Unknown analysis error",
-            });
-        }
-
-
-        return res.status(200).json({ success: true, analysis });
+        return res.status(200).json({
+            success: true,
+            message: "Analysis queued. Processing...",
+            guestSessionId
+        });
 
 
     } catch (error) {
@@ -71,6 +45,7 @@ export async function analysis(req: Request, res: Response) {
             return res.status(400).json({ success: false, error: "ValidationFailed", details: parsed.errors })
         }
 
+
         // creating a exmpty analysis
         const emptyAnalysis = await prisma.analysis.create({
             data: {
@@ -85,7 +60,7 @@ export async function analysis(req: Request, res: Response) {
 
         })
 
-        // put these request to the queues , we using bullMQ here for quequing...
+        // put these request to the queues, we using bullMQ here for quequing...
         analysisQueue(emptyAnalysis.id)
         return res.status(200).json({ success: true, analysisId: emptyAnalysis.id });
 

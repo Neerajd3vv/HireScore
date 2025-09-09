@@ -1,6 +1,7 @@
 import { Worker } from "bullmq";
 import { PrismaClient } from "@prisma/client";
 import { runAnalysis } from "../services/runAnalysis";
+import { redis } from "../lib/redisClient"
 
 
 const prisma = new PrismaClient()
@@ -20,10 +21,7 @@ export const analysisWorker = new Worker("resume-analysis", async job => {
                 },
             })
 
-
             const analysisResult = await runAnalysis(analysisRecord.jd.description, analysisRecord.resume.fileName)
-
-
             if (analysisResult.error) {
                 await prisma.analysis.update({
                     where: { id },
@@ -57,6 +55,33 @@ export const analysisWorker = new Worker("resume-analysis", async job => {
         }
     }
 
+    else if (job.name === "guest-run-analysis") {
+        console.log(`🔄 Processing jobb: ${job.id}, name: ${job.name}, data:`, job.data);
+
+        const { id } = job.data
+        try {
+
+            const data = await redis.hGetAll(`guest:${id}`);
+
+            const analysisResult = await runAnalysis(data.description, data.fileName)
+
+            await redis.set(`guest:${id}:result`, JSON.stringify({
+                status: analysisResult.error ? "failed" : "completed",
+                error: analysisResult.error || null,
+                result: analysisResult.error ? null : analysisResult
+            }))
+
+
+
+        } catch (error) {
+            console.error("error", error)
+            await redis.set(`guest:${id}:result`, JSON.stringify({
+                status: "failed",
+                error: error instanceof Error ? error.message : "Unknown worker error",
+                result: null
+            }));
+        }
+    }
 
 },
     {

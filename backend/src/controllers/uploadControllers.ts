@@ -45,6 +45,7 @@ export async function resumeUpload(req: Request, res: Response) {
 }
 
 
+
 export async function jdWithFileName(req: Request, res: Response) {
 
 
@@ -54,7 +55,6 @@ export async function jdWithFileName(req: Request, res: Response) {
             return res.status(401).json({ success: false, error: "Unauthorized" });
         }
 
-        console.log("reqqqq", req.user);
 
 
         const parsed = validationParser(resumeSchema, req.body)
@@ -64,7 +64,6 @@ export async function jdWithFileName(req: Request, res: Response) {
 
 
         const userId = req.user.id
-        console.log("userId", userId);
 
 
         // used transaction here
@@ -110,7 +109,6 @@ export async function jdWithFileNameGuest(req: Request, res: Response) {
         const guestSessionId = randomUUID()
 
         await redis.hSet(`guest:${guestSessionId}`, { jd, fileName })
-
         await redis.expire(`guest:${guestSessionId}`, 60 * 60 * 24);
 
 

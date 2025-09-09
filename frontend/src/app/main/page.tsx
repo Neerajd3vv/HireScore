@@ -10,11 +10,15 @@ import { useSession } from "next-auth/react"
 import axios from "axios"
 import { toast } from "sonner"
 
+
+
+
 function Main() {
     const [jobDescription, setJobDescription] = useState("")
     const [uploadedFile, setUploadedFile] = useState<File | null>(null)
     const [isDragging, setIsDragging] = useState(false)
     const [error, setError] = useState<string | null>(null);
+
 
     const { data: session } = useSession()
 
@@ -128,6 +132,7 @@ function Main() {
                     },
                 });
 
+
                 //  If user is logged in → save to DB
                 if (session) {
                     const payload = { jd: jobDescription, fileName };
@@ -162,7 +167,7 @@ function Main() {
                     if (res2.data.success) {
                         setIsUploaded(true);
                         setSavedFileName(fileName)
-                        console.log("guest-seesion-id-frontend", res2.data.guestSesssionId);
+                        console.log("guest-session-id-frontend", res2.data.guestSesssionId);
 
                         setGuestSessionId(res2.data.guestSessionId)
                     }
@@ -245,7 +250,7 @@ function Main() {
                             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         </button> */}
                         <Badge title="AI-Powered Analysis" icon={Sparkles} />
-                        <h1 className="text-4xl font-extrabold bg-gradient-to-r from-zinc-50 via-stone-200 to-zinc-100 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]"
+                        <h1 className="text-4xl font-extrabold  text-[#edf6f9]"
                         >
                             Resume Analyzer
                         </h1>
@@ -287,7 +292,7 @@ function Main() {
                                 <div className="w-8 h-8 bg-gradient-to-tr from-white/10 via-stone-50/12 to-zinc-100/8  rounded-lg flex items-center justify-center border border-white/10 shadow-inner">
                                     <FileText className="w-4 h-4 text-stone-200" />
                                 </div>
-                                <h2 className="text-lg font-semibold bg-gradient-to-r from-stone-200 via-stone-100 to-zinc-300 bg-clip-text text-transparent">
+                                <h2 className="text-lg font-semibold text-[#edf6f9] ">
                                     Job Description
                                 </h2>
                             </div>
@@ -325,7 +330,7 @@ function Main() {
                                     <Upload className="w-4 h-4 text-stone-200" />
                                 </div>
 
-                                <h2 className="text-lg font-semibold bg-gradient-to-r from-stone-200 via-stone-100 to-zinc-300 bg-clip-text text-transparent">
+                                <h2 className="text-lg font-semibold text-[#edf6f9]">
                                     Resume Upload
                                 </h2>
                                 {error && <p className="text-red-400 text-sm ">{error}</p>}
